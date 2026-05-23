@@ -1,0 +1,330 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+type EntryData = CollectionEntry<'entries'>['data'];
+type Sources = EntryData['sources'];
+type UnverifiedClaims = EntryData['unverified_claims'];
+type PrimaryCitation = NonNullable<NonNullable<Sources>['sangam']>[number];
+type ReferenceCitation = NonNullable<NonNullable<Sources>['dictionaries']>[number];
+type FrameworkCitation = NonNullable<NonNullable<Sources>['grammar']>[number];
+type ScholarshipCitation = NonNullable<NonNullable<Sources>['scholarship']>[number];
+
+interface Props {
+  sources?: Sources;
+  unverifiedClaims?: UnverifiedClaims;
+}
+
+const { sources, unverifiedClaims } = Astro.props;
+
+const present = (value: string | number | undefined) => value !== undefined && value !== '';
+const sentence = (value: string) => value.endsWith('.') ? value : `${value}.`;
+const joinComma = (parts: Array<string | number | undefined>) =>
+  parts.filter(present).join(', ');
+const urlLabel = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.hostname}${parsed.pathname === '/' ? '' : parsed.pathname}`;
+  } catch {
+    return url;
+  }
+};
+const citationWithUrl = (citation: string, url?: string) => ({
+  citation: sentence(citation),
+  url,
+  urlLabel: url ? urlLabel(url) : undefined,
+});
+
+const primaryCitation = (item: PrimaryCitation) => citationWithUrl(
+  joinComma([
+    item.work,
+    item.section !== undefined ? `section ${item.section}` : undefined,
+    item.lines ? `lines ${item.lines}` : undefined,
+    item.edition,
+  ]),
+  item.url,
+);
+
+const referenceCitation = (item: ReferenceCitation) => citationWithUrl(
+  joinComma([
+    item.work,
+    item.entry !== undefined ? `entry ${item.entry}` : undefined,
+  ]),
+  item.url,
+);
+
+const frameworkCitation = (item: FrameworkCitation) => citationWithUrl(
+  joinComma([
+    item.work,
+    item.section,
+    item.subsection,
+    item.rule !== undefined ? `rule ${item.rule}` : undefined,
+  ]),
+  item.url,
+);
+
+const scholarshipCitation = (item: ScholarshipCitation) => {
+  const authorYear = item.year !== undefined ? `${item.author} (${item.year})` : item.author;
+  const publisherPages = joinComma([
+    item.publisher,
+    item.pages ? `pp. ${item.pages}` : undefined,
+  ]);
+  const citation = [authorYear, item.title, publisherPages].filter(Boolean).join('. ');
+
+  return citationWithUrl(citation, item.url);
+};
+
+const rows = [
+  ...(sources?.sangam || []).map((item) => ({
+    category: 'Primary',
+    icon: 'ti-feather',
+    ...primaryCitation(item),
+    backs: item.backs,
+    verified: item.verified,
+    notes: item.notes,
+  })),
+  ...(sources?.dictionaries || []).map((item) => ({
+    category: 'Reference',
+    icon: 'ti-book-2',
+    ...referenceCitation(item),
+    backs: item.backs,
+    verified: item.verified,
+    notes: item.notes,
+  })),
+  ...(sources?.grammar || []).map((item) => ({
+    category: 'Framework',
+    icon: 'ti-text-grammar',
+    ...frameworkCitation(item),
+    backs: item.backs,
+    verified: item.verified,
+    notes: item.notes,
+  })),
+  ...(sources?.scholarship || []).map((item) => ({
+    category: 'Scholarship',
+    icon: 'ti-school',
+    ...scholarshipCitation(item),
+    backs: item.backs,
+    verified: item.verified,
+    notes: item.notes,
+  })),
+];
+
+const claims = unverifiedClaims || [];
+const hasRows = rows.length > 0;
+const hasClaims = claims.length > 0;
+---
+
+<section class="entry-sources" id="entry-sources" aria-labelledby="entry-sources-title" data-pagefind-body>
+  <div class="entry-sources__heading">
+    <div class="mono" id="entry-sources-title">Sources</div>
+    {!hasRows && !hasClaims && <p>Sources pending.</p>}
+  </div>
+
+  {hasRows && (
+    <div class="entry-sources__list">
+      {rows.map((row) => (
+        <article class="source-row">
+          <div class="source-row__meta">
+            <span class="source-row__category">
+              <svg class={`source-icon ti ${row.icon}`} aria-hidden="true" viewBox="0 0 24 24">
+                {row.icon === 'ti-feather' && (
+                  <>
+                    <path d="M4 20c1.7 -3.7 4.3 -6.8 8 -9" />
+                    <path d="M15.5 3.5c2.3 2.1 2.2 5.6 -.3 8.2l-6.2 6.3l-4 1l1 -4l6.3 -6.2c2.6 -2.5 6.1 -2.6 8.2 -.3z" />
+                  </>
+                )}
+                {row.icon === 'ti-book-2' && (
+                  <>
+                    <path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12z" />
+                    <path d="M19 16h-12a2 2 0 0 0 -2 2" />
+                    <path d="M9 8h6" />
+                  </>
+                )}
+                {row.icon === 'ti-text-grammar' && (
+                  <>
+                    <path d="M5 5h14" />
+                    <path d="M7 9h10" />
+                    <path d="M8 13h8" />
+                    <path d="M10 17h4" />
+                    <path d="M6 5v4" />
+                    <path d="M18 5v4" />
+                  </>
+                )}
+                {row.icon === 'ti-school' && (
+                  <>
+                    <path d="M22 9l-10 -4l-10 4l10 4l10 -4v6" />
+                    <path d="M6 10.6v5.4c3 2 9 2 12 0v-5.4" />
+                  </>
+                )}
+              </svg>
+              {row.category}
+            </span>
+            {!row.verified && <span class="source-badge">unverified</span>}
+          </div>
+          <div class="source-row__citation">
+            <span>{row.citation}</span>
+            {row.url && (
+              <>
+                <span class="source-row__separator" aria-hidden="true">|</span>
+                <a class="source-row__url" href={row.url}>{row.urlLabel}</a>
+              </>
+            )}
+          </div>
+          <div class="source-row__backs">{row.backs}</div>
+          {row.notes && <div class="source-row__notes">{row.notes}</div>}
+        </article>
+      ))}
+    </div>
+  )}
+
+  {hasClaims && (
+    <div class="unverified-claims">
+      <div class="mono">Unverified claims</div>
+      <div class="unverified-claims__list">
+        {claims.map((claim) => (
+          <article class="claim-row">
+            <div class="claim-row__claim">{claim.claim}</div>
+            <div class="claim-row__status">{claim.status}</div>
+            <div class="claim-row__needs">{claim.needs}</div>
+          </article>
+        ))}
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  .entry-sources {
+    display: grid;
+    gap: 1.1rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    border-top: 2px solid var(--dark);
+    padding-top: 1.4rem;
+  }
+
+  .entry-sources__heading {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .entry-sources__heading p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    font-style: italic;
+  }
+
+  .entry-sources__list,
+  .unverified-claims__list {
+    display: grid;
+    border-top: 1px solid var(--border);
+  }
+
+  .source-row,
+  .claim-row {
+    display: grid;
+    gap: 0.45rem;
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+  }
+
+  .source-row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .source-row__category,
+  .source-badge {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .source-row__category {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    color: var(--accent);
+  }
+
+  .source-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .source-badge {
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.28rem 0.4rem;
+  }
+
+  .source-row__citation {
+    color: var(--dark);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .source-row__separator {
+    color: var(--border);
+    font-weight: 400;
+    padding: 0 0.35rem;
+  }
+
+  .source-row__url {
+    display: inline;
+    color: color-mix(in srgb, var(--muted) 82%, var(--accent));
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    text-underline-offset: 0.18em;
+    overflow-wrap: anywhere;
+  }
+
+  .source-row__url:hover,
+  .source-row__url:focus-visible {
+    color: var(--accent);
+    outline: none;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+  }
+
+  .source-row__backs,
+  .source-row__notes,
+  .claim-row__status,
+  .claim-row__needs {
+    color: var(--muted);
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .source-row__notes,
+  .claim-row__needs {
+    font-style: italic;
+  }
+
+  .unverified-claims {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 0.6rem;
+  }
+
+  .claim-row__claim {
+    color: var(--dark);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+</style>

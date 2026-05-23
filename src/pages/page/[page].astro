@@ -1,0 +1,82 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const PAGE_SIZE = 9;
+const entries = await getCollection('entries');
+const canonicalHeroFiles = import.meta.glob('/public/heroes/*.{png,jpg,jpeg,webp}', { eager: true });
+const canonicalHeroImages = new Set(Object.keys(canonicalHeroFiles).map((file) => file.replace('/public', '')));
+const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+
+export async function getStaticPaths() {
+  const allEntries = await getCollection('entries');
+  const totalPages = Math.ceil(allEntries.length / 9);
+
+  return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => {
+    const page = index + 2;
+    return {
+      params: { page: String(page) },
+      props: { page },
+    };
+  });
+}
+
+const { page } = Astro.props;
+const currentPage = Number(page);
+const start = (currentPage - 1) * PAGE_SIZE;
+const pageEntries = entries.slice(start, start + PAGE_SIZE);
+const entriesWithImages = pageEntries.map((entry) => {
+  const fallbackImage = `/heroes/${entry.slug}.png`;
+  const imageSrc = entry.data.image?.src || (canonicalHeroImages.has(fallbackImage) ? fallbackImage : undefined);
+
+  return { entry, imageSrc };
+});
+const prevHref = currentPage === 2 ? '/' : `/page/${currentPage - 1}`;
+const nextHref = currentPage < totalPages ? `/page/${currentPage + 1}` : undefined;
+---
+
+<Base
+  title={`Astro Marginalia — Entries page ${currentPage}`}
+  description={`Archive entries, page ${currentPage} of ${totalPages}.`}
+>
+  <div class="container-wide archive-workspace">
+    <section class="entries-section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Entries</div>
+          <h1>Recent words</h1>
+        </div>
+        <span class="entry-count">{entries.length} indexed</span>
+      </div>
+
+      <div class="entry-grid">
+        {entriesWithImages.map(({ entry, imageSrc }) => (
+          <a href={`/entries/${entry.slug}`} class={`entry-card ${imageSrc ? 'entry-card--has-image' : ''}`}>
+            <div class="entry-card-top">
+              <span class="cluster-tag">{entry.data.thematic_cluster}</span>
+              <span class={`status-badge status-badge--${entry.data.status}`}>{entry.data.status}</span>
+            </div>
+            {imageSrc && (
+              <figure class="entry-card-image">
+                <img src={imageSrc} alt="" loading="lazy" decoding="async" />
+              </figure>
+            )}
+            <div class="tamil-display">{entry.data.concept_tamil}</div>
+            <div class="concept-en">{entry.data.concept}</div>
+            <p>{entry.data.editorial_note}</p>
+          </a>
+        ))}
+      </div>
+
+      <nav class="pagination" aria-label="Entry pages">
+        <a class="cluster-tag" href={prevHref}>Previous</a>
+        <span class="pagination__status">Page {currentPage} of {totalPages}</span>
+        {nextHref ? (
+          <a class="cluster-tag" href={nextHref}>Next</a>
+        ) : (
+          <span class="pagination__end">End</span>
+        )}
+      </nav>
+    </section>
+  </div>
+</Base>

@@ -1,0 +1,225 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  layers: CollectionEntry<'entries'>['data']['layers'];
+}
+
+const { layers } = Astro.props;
+
+const proto = layers.proto_tamil;
+const classical = layers.classical;
+const sanskrit = layers.sanskrit_influenced;
+const other = layers.other_language;
+
+const tamilMedieval = layers.modern.literary || classical?.word || proto?.word || layers.modern.colloquial;
+const tamilMedievalTranslit = layers.modern.literary || classical?.transliteration || proto?.transliteration || layers.modern.colloquial;
+
+const tamilRun = (value: string) => value.match(/[\u0B80-\u0BFF][\u0B80-\u0BFF\s]*/u)?.[0]?.trim();
+const compactMapLabel = (value: string) => {
+  const tamil = tamilRun(value);
+  if (tamil) return tamil;
+
+  return value
+    .split(' as ')[0]
+    .split(' in ')[0]
+    .replace(/^the\s+/i, '')
+    .trim();
+};
+
+const variants = [
+  layers.modern.literary && {
+    label: 'Literary survival',
+    word: layers.modern.literary,
+    fullWord: layers.modern.literary,
+    tone: 'tamil',
+  },
+  {
+    label: 'Colloquial modern',
+    word: layers.modern.colloquial,
+    fullWord: layers.modern.colloquial,
+    tone: sanskrit ? 'loan' : 'tamil',
+  },
+  ...(layers.modern.lost || []).slice(0, 2).map((word, index) => ({
+    label: index === 0 ? 'Faded form' : 'Faded register',
+    word: compactMapLabel(word),
+    fullWord: word,
+    tone: 'lost',
+  })),
+].filter(Boolean).map((variant, index) => ({
+  ...variant,
+  y: 92 + index * 98,
+})) as Array<{ label: string; word: string; fullWord: string; tone: string; y: number }>;
+
+const borrowingLane = sanskrit || other;
+const borrowingSource = sanskrit?.sanskrit_root || other?.source_word || '';
+const borrowingForm = sanskrit?.word || other?.word || '';
+const borrowingTranslit = sanskrit?.transliteration || other?.transliteration || '';
+const borrowingLabel = sanskrit?.label || (sanskrit ? 'Contact lane' : `${other?.source_language} semantic lane`);
+const borrowingNote = sanskrit?.notes?.split(' from ')[0] || other?.notes || other?.route || '';
+
+const verticalMainNodes = [
+  proto && { label: 'Proto', word: proto.word, meta: proto.transliteration },
+  classical && { label: 'Classical', word: classical.word, meta: classical.transliteration },
+  { label: 'Main slot', word: tamilMedieval, meta: tamilMedievalTranslit },
+].filter(Boolean) as Array<{ label: string; word: string; meta: string }>;
+
+const verticalBorrowingNodes = borrowingLane ? [
+  { label: 'Source', word: borrowingSource, meta: sanskrit?.label || other?.source_language || 'source' },
+  { label: 'Adapted', word: borrowingForm, meta: borrowingTranslit },
+  { label: 'Semantic neighbour', word: borrowingNote, meta: 'parallel import' },
+] : [];
+---
+
+<section class="etymology-map" aria-labelledby="etymology-map-title">
+  <div class="map-heading">
+    <div>
+      <div class="mono" id="etymology-map-title">Etymology phylogeny</div>
+      <p>Time runs left to right. Solid lines mark descent; dashed lines mark semantic borrowing.</p>
+    </div>
+  </div>
+
+  <div class="phylogeny-scroll" data-pagefind-body>
+    <svg class="phylogeny" viewBox="0 0 1080 640" role="img" aria-labelledby="phylogeny-title phylogeny-desc">
+      <title id="phylogeny-title">Left-to-right etymology map</title>
+      <desc id="phylogeny-desc">A time-axis chart showing a main lineage, modern variants, and parallel borrowings.</desc>
+
+      <g class="time-axis">
+        <line x1="88" y1="44" x2="980" y2="44"></line>
+        <g transform="translate(92 20)">
+          <text class="axis-label">Proto-form</text>
+          <text class="axis-date" y="20">{proto?.era || 'oldest layer'}</text>
+        </g>
+        <g transform="translate(330 20)">
+          <text class="axis-label">Classical</text>
+          <text class="axis-date" y="20">{classical?.literary_register || 'literary layer'}</text>
+        </g>
+        <g transform="translate(568 20)">
+          <text class="axis-label">Medieval</text>
+          <text class="axis-date" y="20">{sanskrit?.arrived || 'system contact'}</text>
+        </g>
+        <g transform="translate(832 20)">
+          <text class="axis-label">Modern</text>
+          <text class="axis-date" y="20">living variants</text>
+        </g>
+      </g>
+
+      <g class="lane-labels">
+        <text x="30" y="137">Main lineage</text>
+        {borrowingLane && <text x="30" y="538">{borrowingLabel}</text>}
+      </g>
+
+      <path class="line descent" d="M 214 136 C 262 136, 284 136, 332 136"></path>
+      <path class="line descent" d="M 454 136 C 502 136, 526 136, 574 136"></path>
+
+      {variants.map((variant) => (
+        <path class={`line branch ${variant.tone}`} d={`M 696 136 C 748 136, 748 ${variant.y + 44}, 800 ${variant.y + 44}`}></path>
+      ))}
+
+      {borrowingLane && (
+        <>
+          <path class="line loan" d="M 212 530 C 286 530, 306 530, 380 530"></path>
+          <path class="line loan" d="M 502 530 C 574 530, 602 530, 674 530"></path>
+          <path class="line semantic" d="M 574 180 C 574 282, 574 378, 574 492"></path>
+          <text class="semantic-caption" x="592" y="358">parallel semantic import</text>
+        </>
+      )}
+
+      {proto && (
+        <foreignObject class="phylo-node tamil-node" x="86" y="92" width="128" height="88">
+          <div class="phylo-card">
+            <div class="node-kicker">Proto</div>
+            <div class="node-word tamil">{proto.word}</div>
+            <div class="node-sub">{proto.transliteration}</div>
+          </div>
+        </foreignObject>
+      )}
+
+      {classical && (
+        <foreignObject class="phylo-node tamil-node" x="326" y="92" width="128" height="88">
+          <div class="phylo-card">
+            <div class="node-kicker">Classical</div>
+            <div class="node-word tamil">{classical.word}</div>
+            <div class="node-sub">{classical.transliteration}</div>
+          </div>
+        </foreignObject>
+      )}
+
+      <foreignObject class="phylo-node tamil-node" x="568" y="92" width="128" height="88">
+        <div class="phylo-card">
+          <div class="node-kicker">Main slot</div>
+          <div class="node-word tamil">{tamilMedieval}</div>
+          <div class="node-sub">{tamilMedievalTranslit}</div>
+        </div>
+      </foreignObject>
+
+      {variants.map((variant) => (
+        <foreignObject class={`phylo-node variant-node ${variant.tone}`} x="800" y={variant.y} width="220" height="88">
+          <div class="phylo-card compact" title={variant.fullWord}>
+            <div class="node-kicker">{variant.label}</div>
+            <div class="node-word small tamil">{variant.word}</div>
+          </div>
+        </foreignObject>
+      ))}
+
+      {borrowingLane && (
+        <>
+          <foreignObject class="phylo-node loan-node" x="84" y="486" width="128" height="88">
+            <div class="phylo-card">
+              <div class="node-kicker">Source</div>
+              <div class="node-word small">{borrowingSource}</div>
+            </div>
+          </foreignObject>
+          <foreignObject class="phylo-node loan-node" x="374" y="486" width="128" height="88">
+            <div class="phylo-card">
+              <div class="node-kicker">Adapted</div>
+              <div class="node-word tamil">{borrowingForm}</div>
+              <div class="node-sub">{borrowingTranslit}</div>
+            </div>
+          </foreignObject>
+          <foreignObject class="phylo-node loan-node wide" x="674" y="486" width="280" height="88">
+            <div class="phylo-card">
+              <div class="node-kicker">Semantic neighbour</div>
+              <div class="node-word note tamil">{borrowingNote}</div>
+            </div>
+          </foreignObject>
+        </>
+      )}
+    </svg>
+  </div>
+
+  <div class="phylogeny-vertical" data-pagefind-body>
+    <div class="vertical-lane tamil-lane">
+      <div class="vertical-lane-title">Main lineage</div>
+      {verticalMainNodes.map((node) => (
+        <div class="vertical-node tamil-node">
+          <div class="node-kicker">{node.label}</div>
+          <div class="node-word tamil">{node.word}</div>
+          <div class="node-sub">{node.meta}</div>
+        </div>
+      ))}
+      <div class="vertical-variants">
+        {variants.map((variant) => (
+          <div class={`vertical-node variant-node ${variant.tone}`}>
+            <div class="node-kicker">{variant.label}</div>
+            <div class="node-word small tamil">{variant.fullWord || variant.word}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {borrowingLane && (
+      <div class="vertical-lane loan-lane">
+        <div class="vertical-lane-title">{borrowingLabel}</div>
+        <div class="semantic-link">parallel semantic import</div>
+        {verticalBorrowingNodes.map((node) => (
+          <div class="vertical-node loan-node">
+            <div class="node-kicker">{node.label}</div>
+            <div class="node-word small tamil">{node.word}</div>
+            <div class="node-sub">{node.meta}</div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>

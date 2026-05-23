@@ -1,0 +1,126 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogType?: 'website' | 'article';
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = 'A literary archive theme for glossaries, field notes, and annotated knowledge projects.',
+  ogType = 'website',
+  ogImage = '/og-default.svg',
+} = Astro.props;
+const siteOrigin = 'https://example.com';
+const canonicalUrl = new URL(Astro.url.pathname, siteOrigin).toString();
+const imageUrl = new URL(ogImage, siteOrigin).toString();
+const plainDescription = description
+  .replace(/\*\*([^*]+)\*\*/g, '$1')
+  .replace(/\*([^*]+)\*/g, '$1')
+  .replace(/\s+/g, ' ')
+  .trim();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={plainDescription} />
+  <link rel="canonical" href={canonicalUrl} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={plainDescription} />
+  <meta property="og:image" content={imageUrl} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:site_name" content="Astro Marginalia" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={plainDescription} />
+  <meta name="twitter:image" content={imageUrl} />
+  <link rel="alternate" type="application/rss+xml" title="Astro Marginalia RSS" href="/feed.xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="container-wide nav-inner">
+      <div class="brand-lockup">
+        <a href="/" class="site-title">Marginalia</a>
+        <div class="site-subtitle">A literary archive theme</div>
+      </div>
+      <div class="nav-links" aria-label="Site pages">
+        <a href="/about" class="cluster-tag">About</a>
+        <a href="/credits" class="cluster-tag">Credits</a>
+        <a href="/contribute" class="cluster-tag">Contribute</a>
+        <button class="site-share-button" type="button" data-site-share>
+          <svg class="share-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M6 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+            <path d="M18 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+            <path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+            <path d="M8.7 10.7l6.6 -3.4" />
+            <path d="M8.7 13.3l6.6 3.4" />
+          </svg>
+          <span data-site-share-label>Share</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="container-wide footer-inner">
+      <span class="site-subtitle footer-links">
+        <a href="/about">About</a>
+        <span>·</span>
+        <a href="/feed.xml">RSS</a>
+        <span>·</span>
+        <a href="https://astro.build/">Astro</a>
+      </span>
+      <span class="site-subtitle">Built with Astro Marginalia</span>
+    </div>
+  </footer>
+
+  <script src="/pagefind/pagefind-ui.js" is:inline></script>
+  <script>
+    const siteShareButton = document.querySelector<HTMLButtonElement>('[data-site-share]');
+    const siteShareLabel = document.querySelector<HTMLElement>('[data-site-share-label]');
+
+    siteShareButton?.addEventListener('click', async () => {
+      const title = document.title;
+      const url = window.location.href;
+
+      if (typeof navigator.share === 'function') {
+        try {
+          await navigator.share({ title, url });
+          return;
+        } catch {
+          return;
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+        if (siteShareLabel) {
+          siteShareLabel.textContent = 'Copied';
+          window.setTimeout(() => {
+            siteShareLabel.textContent = 'Share';
+          }, 1600);
+        }
+      } catch {
+        if (siteShareLabel) siteShareLabel.textContent = 'Copy failed';
+      }
+    });
+  </script>
+</body>
+</html>

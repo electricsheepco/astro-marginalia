@@ -1,0 +1,26 @@
+{
+  "name": "astro-marginalia",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "A literary Astro theme for glossaries, field notes, archives, and annotated knowledge projects.",
+  "scripts": {
+    "dev": "astro dev --port 18080",
+    "build": "astro build && npx pagefind --site dist",
+    "preview": "astro preview --port 18081",
+    "astro": "astro"
+  },
+  "keywords": ["astro", "astro-theme", "theme", "dictionary", "glossary", "archive", "marginalia", "pagefind"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.15.0",
+    "tailwindcss": "^3.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "pagefind": "^1.1.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,122 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  layers: CollectionEntry<'entries'>['data']['layers'];
+}
+
+const { layers } = Astro.props;
+---
+
+<div class="layer-timeline" data-pagefind-body>
+
+  {layers.proto_tamil && (
+    <div class="layer-card proto" id="layer-proto">
+      <div class="layer-label">{layers.proto_tamil.label || 'Origin'}</div>
+      <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem;">
+        <span class="tamil-medium">{layers.proto_tamil.word}</span>
+        <span class="transliteration">{layers.proto_tamil.transliteration}</span>
+      </div>
+      <div style="font-style: italic; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--muted);">
+        "{layers.proto_tamil.literal_meaning}"
+      </div>
+      <div style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+        {layers.proto_tamil.era}
+      </div>
+      {layers.proto_tamil.worldview && (
+        <div style="font-size: 0.95rem; line-height: 1.65;">{layers.proto_tamil.worldview}</div>
+      )}
+      {layers.proto_tamil.notes && (
+        <div style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; font-style: italic;">{layers.proto_tamil.notes}</div>
+      )}
+    </div>
+  )}
+
+  {layers.classical && (
+    <div class="layer-card classical" id="layer-classical">
+      <div class="layer-label">{layers.classical.label || 'Classical'}</div>
+      <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem;">
+        <span class="tamil-medium">{layers.classical.word}</span>
+        <span class="transliteration">{layers.classical.transliteration}</span>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+        {layers.classical.literary_register}
+      </div>
+      {layers.classical.example && (
+        <div style="background: rgba(0,0,0,0.04); padding: 0.75rem 1rem; margin: 0.75rem 0; border-left: 2px solid var(--border);">
+          <div class="tamil" style="margin-bottom: 0.25rem;">{layers.classical.example.text}</div>
+          <div style="font-size: 0.8rem; color: var(--muted); font-style: italic;">{layers.classical.example.translation}</div>
+          <div style="font-size: 0.75rem; color: var(--muted); font-family: var(--font-mono); margin-top: 0.25rem;">{layers.classical.example.source}</div>
+        </div>
+      )}
+      {layers.classical.notes && (
+        <div style="font-size: 0.9rem; color: var(--muted); font-style: italic;">{layers.classical.notes}</div>
+      )}
+    </div>
+  )}
+
+  {layers.sanskrit_influenced && (
+    <div class="layer-card sanskrit" id="layer-sanskrit">
+      <div class="layer-label">{layers.sanskrit_influenced.label || 'Contact'}</div>
+      <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem;">
+        <span class="tamil-medium">{layers.sanskrit_influenced.word}</span>
+        <span class="transliteration">{layers.sanskrit_influenced.transliteration}</span>
+      </div>
+      <div style="font-size: 0.8rem; font-family: var(--font-mono); letter-spacing: 0.05em; margin-bottom: 0.75rem; color: var(--muted);">
+        from {layers.sanskrit_influenced.sanskrit_root} · {layers.sanskrit_influenced.arrived}
+      </div>
+      <div style="font-size: 0.95rem; line-height: 1.65; margin-bottom: 0.5rem;">{layers.sanskrit_influenced.what_it_brought}</div>
+      <div style="display: inline-block; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); padding: 0.15rem 0.5rem;">
+        {layers.sanskrit_influenced.relationship}
+      </div>
+      {layers.sanskrit_influenced.notes && (
+        <div style="font-size: 0.9rem; color: var(--muted); font-style: italic; margin-top: 0.75rem;">{layers.sanskrit_influenced.notes}</div>
+      )}
+    </div>
+  )}
+
+  {layers.other_language && (
+    <div class="layer-card other" id="layer-other">
+      <div class="layer-label">{layers.other_language.source_language}-influenced</div>
+      <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem;">
+        <span class="tamil-medium">{layers.other_language.word}</span>
+        <span class="transliteration">{layers.other_language.transliteration}</span>
+      </div>
+      <div style="font-size: 0.8rem; font-family: var(--font-mono); letter-spacing: 0.05em; margin-bottom: 0.75rem; color: var(--muted);">
+        from {layers.other_language.source_word}
+      </div>
+      {layers.other_language.route && (
+        <div style="font-size: 0.9rem; color: var(--muted); font-style: italic;">{layers.other_language.route}</div>
+      )}
+      {layers.other_language.notes && (
+        <div style="font-size: 0.9rem; color: var(--muted); font-style: italic; margin-top: 0.5rem;">{layers.other_language.notes}</div>
+      )}
+    </div>
+  )}
+
+  <div class="layer-card modern" id="layer-modern">
+    <div class="layer-label">Modern Usage</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem;">Colloquial</div>
+        <div class="tamil">{layers.modern.colloquial}</div>
+      </div>
+      {layers.modern.literary && (
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem;">Literary</div>
+          <div class="tamil">{layers.modern.literary}</div>
+        </div>
+      )}
+    </div>
+    {layers.modern.lost && layers.modern.lost.length > 0 && (
+      <div style="margin-top: 0.75rem;">
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem;">Lost</div>
+        {layers.modern.lost.map((w: string) => (
+          <div style="font-size: 0.9rem; color: var(--muted);" class="tamil">{w}</div>
+        ))}
+      </div>
+    )}
+    <div style="font-size: 0.9rem; color: var(--muted); font-style: italic; margin-top: 0.75rem;">{layers.modern.notes}</div>
+  </div>
+
+</div>

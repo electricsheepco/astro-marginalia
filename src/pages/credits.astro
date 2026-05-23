@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEntry } from 'astro:content';
+
+const page = await getEntry('pages', 'credits');
+if (!page) throw new Error('Missing credits page content.');
+
+const { Content } = await page.render();
+---
+
+<Base title={`${page.data.title || 'Credits'} — Astro Marginalia`} description={page.data.description}>
+  <article class="static-page">
+    <div class="container">
+      <section class="entry-prose static-page__prose" data-pagefind-body>
+        <Content />
+      </section>
+    </div>
+  </article>
+</Base>

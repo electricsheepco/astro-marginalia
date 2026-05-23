@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Astro Marginalia">
+  <rect width="1200" height="630" fill="#f9f5ef"/>
+  <path d="M0 0H1200V630H0z" fill="none" stroke="#e0d8cc"/>
+  <g opacity="0.35" stroke="#e0d8cc" stroke-width="1">
+    <path d="M120 0V630M240 0V630M360 0V630M480 0V630M600 0V630M720 0V630M840 0V630M960 0V630M1080 0V630"/>
+    <path d="M0 105H1200M0 210H1200M0 315H1200M0 420H1200M0 525H1200"/>
+  </g>
+  <rect x="210" y="135" width="780" height="360" fill="#f2ece2" stroke="#e0d8cc"/>
+  <path d="M270 195H930M270 435H930" stroke="#d8cdbf"/>
+  <text x="600" y="285" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="84" font-weight="700" fill="#1a1611">Astro Marginalia</text>
+  <text x="600" y="345" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="24" letter-spacing="8" fill="#8b2500">A LITERARY ARCHIVE THEME</text>
+</svg>

@@ -1,0 +1,170 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const PAGE_SIZE = 9;
+const entries = await getCollection('entries');
+const paginatedEntries = entries.slice(0, PAGE_SIZE);
+const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+const ambientImageFiles = import.meta.glob('/public/ambient/*.{png,jpg,jpeg,webp}', { eager: true });
+const ambientImages = Object.keys(ambientImageFiles)
+  .map((file) => file.replace('/public', ''))
+  .sort();
+const canonicalHeroFiles = import.meta.glob('/public/heroes/*.{png,jpg,jpeg,webp}', { eager: true });
+const canonicalHeroImages = new Set(Object.keys(canonicalHeroFiles).map((file) => file.replace('/public', '')));
+const entriesWithImages = paginatedEntries.map((entry) => {
+  const fallbackImage = `/heroes/${entry.slug}.png`;
+  const imageSrc = entry.data.image?.src || (canonicalHeroImages.has(fallbackImage) ? fallbackImage : undefined);
+
+  return { entry, imageSrc };
+});
+const heroEntries = entries
+  .map((entry) => ({
+    href: `/entries/${entry.slug}`,
+    tamil: entry.data.concept_tamil,
+    gloss: entry.data.layers.proto_tamil?.literal_meaning || entry.data.concept,
+  }))
+  .filter((entry) => entry.tamil);
+const initialHero = heroEntries[0] || {
+  href: '/entries/aster',
+  tamil: 'aster',
+  gloss: 'star',
+};
+---
+
+<Base title="Astro Marginalia — A literary archive theme">
+  <section class="home-hero">
+    {ambientImages.length > 0 && (
+      <section class="homepage-hero" aria-label="Rotating archive image study">
+        <img id="rotating-hero" alt="Archive texture" decoding="async" loading="eager" />
+      </section>
+    )}
+    <div class="container-wide home-hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">Curated knowledge entries</div>
+        <h1 class="home-title">Marginalia</h1>
+        <p class="hero-deck">
+          A literary Astro theme for glossaries, field notes, archives, and annotated essays.
+        </p>
+      </div>
+      <div class="home-visual-stack">
+        <a class="hero-glyph" href={initialHero.href} aria-label={`Open ${initialHero.gloss}`}>
+          <span id="hero-glyph-word">{initialHero.tamil}</span>
+          <small id="hero-glyph-gloss">{initialHero.gloss}</small>
+        </a>
+      </div>
+    </div>
+    <a class="scroll-cue" href="#entries" aria-label="Scroll to entries">
+      <span>Scroll</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M12 5v14" />
+        <path d="M6 13l6 6l6 -6" />
+      </svg>
+    </a>
+  </section>
+
+  <div class="container-wide home-workspace">
+    <section class="search-panel">
+      <div>
+        <div class="eyebrow">Search</div>
+        <div class="search-title">Titles, display forms, transliterations, notes, sources, marginalia.</div>
+      </div>
+      <div id="search"></div>
+    </section>
+
+    <section class="entries-section" id="entries">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Entries</div>
+          <h2>Recent entries</h2>
+        </div>
+        <span class="entry-count">{entries.length} indexed</span>
+      </div>
+      <div class="entry-grid">
+        {entriesWithImages.map(({ entry, imageSrc }) => (
+          <a href={`/entries/${entry.slug}`} class={`entry-card ${imageSrc ? 'entry-card--has-image' : ''}`}>
+            <div class="entry-card-top">
+              <span class="cluster-tag">{entry.data.thematic_cluster}</span>
+              <span class={`status-badge status-badge--${entry.data.status}`}>{entry.data.status}</span>
+            </div>
+            {imageSrc && (
+              <figure class="entry-card-image">
+                <img src={imageSrc} alt="" loading="lazy" decoding="async" />
+              </figure>
+            )}
+            <div class="tamil-display">{entry.data.concept_tamil}</div>
+            <div class="concept-en">{entry.data.concept}</div>
+            <p>{entry.data.editorial_note}</p>
+          </a>
+        ))}
+      </div>
+      {totalPages > 1 && (
+        <nav class="pagination" aria-label="Entry pages">
+          <span class="pagination__status">Page 1 of {totalPages}</span>
+          <a class="cluster-tag" href="/page/2">Next</a>
+        </nav>
+      )}
+    </section>
+  </div>
+
+  <script is:inline type="application/json" id="hero-glyph-entries" set:html={JSON.stringify(heroEntries)} />
+
+  <script is:inline define:vars={{ ambientImages }}>
+    if (ambientImages.length > 0) {
+      const img = document.getElementById('rotating-hero');
+      const pick = ambientImages[Math.floor(Math.random() * ambientImages.length)];
+      if (img) img.src = pick;
+    }
+  </script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const pagefindWindow = window as Window & typeof globalThis & {
+        PagefindUI: new (options: {
+          element: string;
+          showSubResults: boolean;
+          translations?: { placeholder?: string };
+        }) => unknown;
+      };
+
+      new pagefindWindow.PagefindUI({
+        element: '#search',
+        showSubResults: true,
+        translations: {
+          placeholder: 'Search: aster, harbor, garden, signal',
+        },
+      });
+
+      const input = document.querySelector<HTMLInputElement>('#search input[type="text"], #search input[type="search"]');
+      input?.setAttribute('lang', 'en');
+      input?.setAttribute('autocomplete', 'off');
+
+      const dataNode = document.getElementById('hero-glyph-entries');
+      const heroLink = document.querySelector<HTMLAnchorElement>('.hero-glyph');
+      const heroWord = document.getElementById('hero-glyph-word');
+      const heroGloss = document.getElementById('hero-glyph-gloss');
+
+      if (dataNode?.textContent && heroLink && heroWord && heroGloss) {
+        const heroEntries = JSON.parse(dataNode.textContent) as Array<{
+          href: string;
+          tamil: string;
+          gloss: string;
+        }>;
+
+        if (heroEntries.length > 0) {
+          const previousHref = window.localStorage.getItem('homeHeroHref');
+          const candidates = heroEntries.length > 1
+            ? heroEntries.filter((entry) => entry.href !== previousHref)
+            : heroEntries;
+          const selected = candidates[Math.floor(Math.random() * candidates.length)];
+
+          heroLink.href = selected.href;
+          heroLink.setAttribute('aria-label', `Open ${selected.gloss}`);
+          heroWord.textContent = selected.tamil;
+          heroGloss.textContent = selected.gloss;
+          window.localStorage.setItem('homeHeroHref', selected.href);
+        }
+      }
+    });
+  </script>
+</Base>

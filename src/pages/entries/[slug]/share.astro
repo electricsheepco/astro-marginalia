@@ -1,0 +1,107 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('entries');
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { concept, concept_tamil, editorial_note, layers, status, thematic_cluster, phylogeny } = entry.data;
+const canonicalHeroFiles = import.meta.glob('/public/heroes/*.{png,jpg,jpeg,webp,svg}', { eager: true });
+const canonicalHeroSrc = `/heroes/${entry.slug}.png`;
+const heroImageSrc = entry.data.image?.src || (Object.hasOwn(canonicalHeroFiles, `/public${canonicalHeroSrc}`) ? canonicalHeroSrc : undefined);
+const transliteration = layers.proto_tamil?.transliteration || layers.modern.colloquial;
+const protoLabel = layers.proto_tamil?.word || concept_tamil;
+const classicalLabel = layers.classical?.word || layers.modern.literary || concept_tamil;
+const modernLabel = layers.modern.colloquial;
+const shareUrl = `https://example.com/entries/${entry.slug}`;
+const sourceCount = Object.values(entry.data.sources || {}).reduce((total, group) => total + (group?.length || 0), 0);
+const cleanText = (value = '') => value
+  .replace(/\*\*([^*]+)\*\*/g, '$1')
+  .replace(/\*([^*]+)\*/g, '$1')
+  .replace(/\s+/g, ' ')
+  .trim();
+const shortEditorialNote = cleanText(editorial_note).slice(0, 420);
+const modernVariants = [
+  phylogeny?.modern.literary?.word,
+  phylogeny?.modern.colloquial?.word,
+  phylogeny?.modern.faded_form?.word,
+  phylogeny?.modern.faded_register?.word,
+].filter(Boolean);
+---
+
+<Base
+  title={`Share carousel — ${concept_tamil} — ${concept}`}
+  description={`Share-ready carousel cards for ${concept_tamil} (${transliteration}).`}
+  ogType="article"
+  ogImage={heroImageSrc}
+>
+  <div class="share-studio">
+    <div class="container-wide share-studio__header">
+      <a class="cluster-tag" href={`/entries/${entry.slug}`}>Back to entry</a>
+      <div>
+        <div class="eyebrow">Share carousel</div>
+        <h1>{concept_tamil}</h1>
+        <p>Four 4:5 cards for screenshots, social posts, or editorial previews.</p>
+      </div>
+    </div>
+
+    <section class="carousel-sheet" aria-label={`Share carousel for ${concept_tamil}`}>
+      <article class="carousel-card carousel-card--cover">
+        {heroImageSrc && <img src={heroImageSrc} alt="" loading="eager" decoding="async" />}
+        <div class="carousel-card__veil"></div>
+        <div class="carousel-card__content">
+          <div class="eyebrow">Astro Marginalia</div>
+          <h2>{concept_tamil}</h2>
+          <p class="carousel-translit">{transliteration}</p>
+          <p>{concept}</p>
+        </div>
+      </article>
+
+      <article class="carousel-card">
+        <div class="carousel-card__content">
+          <div class="eyebrow">The word</div>
+          <h2>{concept_tamil}</h2>
+          <p>{shortEditorialNote}</p>
+        </div>
+      </article>
+
+      <article class="carousel-card">
+        <div class="carousel-card__content">
+          <div class="eyebrow">Lineage</div>
+          <div class="carousel-lineage">
+            <div>
+              <span>Proto</span>
+              <strong>{protoLabel}</strong>
+            </div>
+            <div>
+              <span>Classical</span>
+              <strong>{classicalLabel}</strong>
+            </div>
+            <div>
+              <span>Modern</span>
+              <strong>{modernLabel}</strong>
+            </div>
+          </div>
+          {modernVariants.length > 0 && (
+            <p class="carousel-note">{modernVariants.join(' / ')}</p>
+          )}
+        </div>
+      </article>
+
+      <article class="carousel-card carousel-card--end">
+        <div class="carousel-card__content">
+          <div class="eyebrow">{thematic_cluster} · {status}</div>
+          <h2>Read the entry</h2>
+          <p>{shareUrl}</p>
+          <p class="carousel-note">{sourceCount} sources indexed · Astro Marginalia</p>
+        </div>
+      </article>
+    </section>
+  </div>
+</Base>

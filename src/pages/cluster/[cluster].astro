@@ -1,0 +1,81 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const entries = await getCollection('entries');
+const clusters = [...new Set(entries.map((entry) => entry.data.thematic_cluster))].sort();
+
+export async function getStaticPaths() {
+  const entries = await getCollection('entries');
+  const clusters = [...new Set(entries.map((entry) => entry.data.thematic_cluster))].sort();
+
+  return clusters.map((cluster) => ({
+    params: { cluster },
+    props: {
+      cluster,
+      entries: entries
+        .filter((entry) => entry.data.thematic_cluster === cluster)
+        .sort((a, b) => a.data.concept.localeCompare(b.data.concept)),
+    },
+  }));
+}
+
+const { cluster, entries: clusterEntries } = Astro.props;
+const clusterLabel = String(cluster);
+const canonicalHeroFiles = import.meta.glob('/public/heroes/*.{png,jpg,jpeg,webp}', { eager: true });
+const canonicalHeroImages = new Set(Object.keys(canonicalHeroFiles).map((file) => file.replace('/public', '')));
+const clusterEntriesWithImages = clusterEntries.map((entry) => {
+  const fallbackImage = `/heroes/${entry.slug}.png`;
+  const imageSrc = entry.data.image?.src || (canonicalHeroImages.has(fallbackImage) ? fallbackImage : undefined);
+
+  return { entry, imageSrc };
+});
+---
+
+<Base title={`${clusterLabel} — Astro Marginalia`}>
+  <section class="cluster-hero">
+    <div class="container-wide">
+      <a href="/" class="cluster-tag">All entries</a>
+      <div class="eyebrow">Thematic cluster</div>
+      <h1>{clusterLabel}</h1>
+      <p>
+        {clusterEntries.length} {clusterEntries.length === 1 ? 'word' : 'words'} in this field.
+      </p>
+    </div>
+  </section>
+
+  <div class="container-wide cluster-workspace">
+    <div class="cluster-tabs" aria-label="Browse thematic clusters">
+      {clusters.map((item) => (
+        <a
+          href={`/cluster/${item}`}
+          class={`cluster-tag ${item === clusterLabel ? 'is-active' : ''}`}
+          aria-current={item === clusterLabel ? 'page' : undefined}
+        >
+          {item}
+        </a>
+      ))}
+    </div>
+
+    <section class="entries-section">
+      <div class="entry-grid">
+        {clusterEntriesWithImages.map(({ entry, imageSrc }) => (
+          <a href={`/entries/${entry.slug}`} class={`entry-card ${imageSrc ? 'entry-card--has-image' : ''}`}>
+            <div class="entry-card-top">
+              <span class="cluster-tag">{entry.data.thematic_cluster}</span>
+              <span class={`status-badge status-badge--${entry.data.status}`}>{entry.data.status}</span>
+            </div>
+            {imageSrc && (
+              <figure class="entry-card-image">
+                <img src={imageSrc} alt="" loading="lazy" decoding="async" />
+              </figure>
+            )}
+            <div class="tamil-display">{entry.data.concept_tamil}</div>
+            <div class="concept-en">{entry.data.concept}</div>
+            <p>{entry.data.editorial_note}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>

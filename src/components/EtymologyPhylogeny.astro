@@ -1,0 +1,503 @@
+---
+interface ProtoLayer { word: string; transliteration?: string }
+interface ClassicalLayer { word: string; transliteration?: string }
+interface MedievalCoexist { primary: string; arrival?: string }
+interface ModernQuadrant { word: string; context?: string }
+interface ContactLane {
+  source: string;
+  source_gloss?: string;
+  tamilised?: string;
+  parallel?: { word: string; context?: string };
+}
+
+export interface Props {
+  proto: ProtoLayer;
+  classical: ClassicalLayer;
+  medieval: MedievalCoexist;
+  modern: {
+    literary: ModernQuadrant;
+    colloquial: ModernQuadrant;
+    faded_form?: ModernQuadrant;
+    faded_register?: ModernQuadrant;
+  };
+  contactLane?: ContactLane;
+}
+
+const { proto, classical, medieval, modern, contactLane } = Astro.props;
+
+const hasFaded = Boolean(modern.faded_form || modern.faded_register);
+const compact = (value: string | undefined, max: number) => {
+  if (!value || value.length <= max) return value;
+  return `${value.slice(0, Math.max(0, max - 3)).trim()}...`;
+};
+---
+
+<figure class="etymology-phylogeny">
+  <header class="etymology-phylogeny__header">
+    <h3 class="etymology-phylogeny__title">Etymology phylogeny</h3>
+    <p class="etymology-phylogeny__subtitle">
+      Time runs left to right. Solid lines mark descent; dashed lines mark semantic borrowing.
+    </p>
+  </header>
+
+  <div class="etymology-phylogeny__canvas" data-pagefind-body>
+    <svg viewBox="0 0 680 390" role="img" aria-labelledby="phy-title phy-desc">
+      <title id="phy-title">Etymology phylogeny for {proto.word}</title>
+      <desc id="phy-desc">Two lineages, main and contact, traced across proto, classical, medieval, and modern periods.</desc>
+
+      <defs>
+        <marker id="phy-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </marker>
+      </defs>
+
+      <g class="phy-col-header">
+        <text x="130" y="24" text-anchor="middle">Proto</text>
+        <text x="240" y="24" text-anchor="middle">Classical</text>
+        <text x="360" y="24" text-anchor="middle">Medieval</text>
+        <text x="555" y="24" text-anchor="middle">Modern</text>
+      </g>
+
+      <g class="phy-lane-labels">
+        <text x="30" y="132">Main lineage</text>
+        {contactLane && <text x="30" y="286">Contact lane</text>}
+      </g>
+
+      <path class="phy-line phy-line--solid" d="M170 128H200" marker-end="url(#phy-arrow)" />
+      <path class="phy-line phy-line--solid" d="M280 128H320" marker-end="url(#phy-arrow)" />
+      <path class="phy-line phy-line--solid" d="M400 128C440 128 442 94 482 94" marker-end="url(#phy-arrow)" />
+      <path class="phy-line phy-line--solid" d="M400 128C440 128 442 158 482 158" marker-end="url(#phy-arrow)" />
+      {modern.faded_form && (
+        <path class="phy-line phy-line--dormant" d="M400 128C438 128 444 222 482 222" marker-end="url(#phy-arrow)" />
+      )}
+      {modern.faded_register && (
+        <path class="phy-line phy-line--dormant" d="M400 128C438 128 444 286 482 286" marker-end="url(#phy-arrow)" />
+      )}
+
+      {contactLane && (
+        <>
+          <path class="phy-line phy-line--borrow" d="M170 286H320" marker-end="url(#phy-arrow)" />
+          {contactLane.parallel && (
+            <path class="phy-line phy-line--borrow" d="M400 286H482" marker-end="url(#phy-arrow)" />
+          )}
+          <path class="phy-line phy-line--borrow" d="M360 176C360 212 360 226 360 254" marker-end="url(#phy-arrow)" />
+          <text class="phy-borrow-label" x="378" y="224">semantic borrowing</text>
+        </>
+      )}
+
+      <g class="phy-node phy-node--live">
+        <rect x="90" y="100" width="80" height="56" rx="4" />
+        <text class="phy-word" x="130" y="122" text-anchor="middle" dominant-baseline="central">{compact(proto.word, 8)}</text>
+        {proto.transliteration && (
+          <text class="phy-gloss" x="130" y="143" text-anchor="middle" dominant-baseline="central">{compact(proto.transliteration, 14)}</text>
+        )}
+      </g>
+
+      <g class="phy-node phy-node--live">
+        <rect x="200" y="100" width="80" height="56" rx="4" />
+        <text class="phy-word" x="240" y="122" text-anchor="middle" dominant-baseline="central">{compact(classical.word, 8)}</text>
+        {classical.transliteration && (
+          <text class="phy-gloss" x="240" y="143" text-anchor="middle" dominant-baseline="central">{compact(classical.transliteration, 14)}</text>
+        )}
+      </g>
+
+      <g class="phy-node phy-node--live">
+        <rect x="320" y="100" width="80" height="56" rx="4" />
+        <text class="phy-word" x="360" y="122" text-anchor="middle" dominant-baseline="central">{compact(medieval.primary, 8)}</text>
+        {medieval.arrival && (
+          <text class="phy-gloss" x="360" y="143" text-anchor="middle" dominant-baseline="central">{compact(medieval.arrival, 14)}</text>
+        )}
+      </g>
+
+      <g class="phy-node phy-node--live">
+        <rect x="482" y="66" width="146" height="56" rx="4" />
+        <text class="phy-kicker" x="496" y="84">Literary</text>
+        <text class="phy-word phy-word--left" x="496" y="104">{compact(modern.literary.word, 10)}</text>
+        {modern.literary.context && <text class="phy-gloss phy-gloss--left" x="496" y="116">{compact(modern.literary.context, 24)}</text>}
+      </g>
+
+      <g class="phy-node phy-node--live">
+        <rect x="482" y="130" width="146" height="56" rx="4" />
+        <text class="phy-kicker" x="496" y="148">Colloquial</text>
+        <text class="phy-word phy-word--left" x="496" y="168">{compact(modern.colloquial.word, 10)}</text>
+        {modern.colloquial.context && <text class="phy-gloss phy-gloss--left" x="496" y="180">{compact(modern.colloquial.context, 24)}</text>}
+      </g>
+
+      {modern.faded_form && (
+        <g class="phy-node phy-node--faded">
+          <rect x="482" y="194" width="146" height="56" rx="4" />
+          <text class="phy-kicker" x="496" y="212">Faded form</text>
+          <text class="phy-word phy-word--left" x="496" y="232">{compact(modern.faded_form.word, 10)}</text>
+          {modern.faded_form.context && <text class="phy-gloss phy-gloss--left" x="496" y="244">{compact(modern.faded_form.context, 24)}</text>}
+        </g>
+      )}
+
+      {modern.faded_register && (
+        <g class="phy-node phy-node--faded">
+          <rect x="482" y="258" width="146" height="56" rx="4" />
+          <text class="phy-kicker" x="496" y="276">Faded register</text>
+          <text class="phy-word phy-word--left" x="496" y="296">{compact(modern.faded_register.word, 10)}</text>
+          {modern.faded_register.context && <text class="phy-gloss phy-gloss--left" x="496" y="308">{compact(modern.faded_register.context, 24)}</text>}
+        </g>
+      )}
+
+      {contactLane && (
+        <>
+          <g class="phy-node phy-node--loan">
+            <rect x="90" y="258" width="80" height="56" rx="4" />
+            <text class="phy-word phy-word--source" x="130" y="280" text-anchor="middle" dominant-baseline="central">{compact(contactLane.source, 12)}</text>
+            {contactLane.source_gloss && (
+              <text class="phy-gloss" x="130" y="301" text-anchor="middle" dominant-baseline="central">{compact(contactLane.source_gloss, 14)}</text>
+            )}
+          </g>
+
+          {contactLane.tamilised && (
+            <g class="phy-node phy-node--loan">
+              <rect x="320" y="258" width="80" height="56" rx="4" />
+              <text class="phy-word" x="360" y="286" text-anchor="middle" dominant-baseline="central">{compact(contactLane.tamilised, 8)}</text>
+            </g>
+          )}
+
+          {contactLane.parallel && (
+            <g class="phy-node phy-node--loan">
+              <rect x="482" y="322" width="146" height="46" rx="4" />
+              <text class="phy-kicker" x="496" y="339">Parallel</text>
+              <text class="phy-word phy-word--left" x="496" y="358">{compact(contactLane.parallel.word, 10)}</text>
+            </g>
+          )}
+        </>
+      )}
+    </svg>
+  </div>
+
+  <div class="etymology-phylogeny__stack" data-pagefind-body>
+    <div class="phy-stack-row phy-stack-row--live">
+      <span>Proto</span>
+      <strong>{proto.word}</strong>
+      {proto.transliteration && <small>{proto.transliteration}</small>}
+    </div>
+    <div class="phy-stack-row phy-stack-row--live">
+      <span>Classical</span>
+      <strong>{classical.word}</strong>
+      {classical.transliteration && <small>{classical.transliteration}</small>}
+    </div>
+    <div class="phy-stack-row phy-stack-row--live">
+      <span>Medieval</span>
+      <strong>{medieval.primary}</strong>
+      {medieval.arrival && <small>{medieval.arrival}</small>}
+    </div>
+    <div class="phy-stack-grid">
+      <div class="phy-stack-row phy-stack-row--live">
+        <span>Literary</span>
+        <strong>{modern.literary.word}</strong>
+        {modern.literary.context && <small>{modern.literary.context}</small>}
+      </div>
+      <div class="phy-stack-row phy-stack-row--live">
+        <span>Colloquial</span>
+        <strong>{modern.colloquial.word}</strong>
+        {modern.colloquial.context && <small>{modern.colloquial.context}</small>}
+      </div>
+      {modern.faded_form && (
+        <div class="phy-stack-row phy-stack-row--faded">
+          <span>Faded form</span>
+          <strong>{modern.faded_form.word}</strong>
+          {modern.faded_form.context && <small>{modern.faded_form.context}</small>}
+        </div>
+      )}
+      {modern.faded_register && (
+        <div class="phy-stack-row phy-stack-row--faded">
+          <span>Faded register</span>
+          <strong>{modern.faded_register.word}</strong>
+          {modern.faded_register.context && <small>{modern.faded_register.context}</small>}
+        </div>
+      )}
+    </div>
+    {contactLane && (
+      <div class="phy-stack-lane">
+        <div class="phy-stack-row phy-stack-row--loan">
+          <span>Contact source</span>
+          <strong>{contactLane.source}</strong>
+          {contactLane.source_gloss && <small>{contactLane.source_gloss}</small>}
+        </div>
+        {contactLane.tamilised && (
+          <div class="phy-stack-row phy-stack-row--loan">
+            <span>Adapted</span>
+            <strong>{contactLane.tamilised}</strong>
+          </div>
+        )}
+        {contactLane.parallel && (
+          <div class="phy-stack-row phy-stack-row--loan">
+            <span>Parallel</span>
+            <strong>{contactLane.parallel.word}</strong>
+            {contactLane.parallel.context && <small>{contactLane.parallel.context}</small>}
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+
+  <figcaption class="etymology-phylogeny__legend">
+    <span><span class="phy-legend-line phy-legend-line--solid"></span> descent within lineage</span>
+    <span><span class="phy-legend-line phy-legend-line--dashed"></span> semantic borrowing</span>
+    {hasFaded && <span><span class="phy-legend-line phy-legend-line--dormant"></span> dormant continuation</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .etymology-phylogeny {
+    --phy-bg: color-mix(in srgb, var(--surface) 78%, var(--background));
+    --phy-ink: var(--dark);
+    --phy-live: var(--layer-classical);
+    --phy-live-bg: color-mix(in srgb, var(--layer-proto-bg) 78%, var(--background));
+    --phy-loan: var(--accent-light);
+    --phy-loan-bg: color-mix(in srgb, var(--layer-sanskrit-bg) 74%, var(--background));
+    --phy-faded: var(--muted);
+    --phy-faded-bg: color-mix(in srgb, var(--surface) 80%, var(--background));
+    --phy-line: var(--muted);
+
+    margin: 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--phy-bg);
+    color: var(--phy-ink);
+    padding: clamp(1.2rem, 3vw, 2rem);
+  }
+
+  .etymology-phylogeny__title {
+    margin: 0;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .etymology-phylogeny__subtitle {
+    margin: 0.35rem 0 1.35rem;
+    color: var(--muted);
+    font-family: var(--font-prose);
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.35;
+  }
+
+  .etymology-phylogeny__canvas {
+    display: block;
+  }
+
+  .etymology-phylogeny svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .phy-col-header text,
+  .phy-lane-labels text,
+  .phy-kicker,
+  .phy-gloss,
+  .phy-borrow-label {
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .phy-col-header text,
+  .phy-lane-labels text {
+    fill: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .phy-lane-labels text {
+    writing-mode: tb;
+  }
+
+  .phy-line {
+    fill: none;
+    stroke: var(--phy-line);
+    stroke-linecap: round;
+    stroke-width: 1.25;
+  }
+
+  .phy-line--solid {
+    stroke: var(--phy-live);
+  }
+
+  .phy-line--borrow {
+    stroke: var(--phy-loan);
+    stroke-dasharray: 4 5;
+  }
+
+  .phy-line--dormant {
+    stroke: var(--phy-faded);
+    stroke-dasharray: 3 5;
+  }
+
+  .phy-node--live rect {
+    fill: var(--phy-live-bg);
+    stroke: var(--phy-live);
+    stroke-width: 0.7;
+  }
+
+  .phy-node--loan rect {
+    fill: var(--phy-loan-bg);
+    stroke: var(--phy-loan);
+    stroke-width: 0.7;
+  }
+
+  .phy-node--faded rect {
+    fill: var(--phy-faded-bg);
+    stroke: var(--phy-faded);
+    stroke-dasharray: 4 4;
+    stroke-width: 0.7;
+  }
+
+  .phy-word {
+    fill: var(--phy-ink);
+    font-family: var(--font-tamil);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .phy-word--source {
+    font-family: var(--font-prose);
+    font-size: 12px;
+  }
+
+  .phy-word--left {
+    dominant-baseline: central;
+    text-anchor: start;
+  }
+
+  .phy-kicker {
+    fill: var(--accent);
+    font-size: 7px;
+    font-weight: 600;
+  }
+
+  .phy-gloss {
+    fill: var(--muted);
+    font-size: 7px;
+    letter-spacing: 0.05em;
+  }
+
+  .phy-gloss--left {
+    text-anchor: start;
+  }
+
+  .phy-borrow-label {
+    fill: var(--muted);
+    font-size: 7px;
+  }
+
+  .etymology-phylogeny__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.4rem;
+    margin-top: 1.2rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .phy-legend-line {
+    display: inline-block;
+    width: 24px;
+    margin-right: 0.5rem;
+    border-top: 1px solid var(--phy-line);
+    vertical-align: middle;
+  }
+
+  .phy-legend-line--solid {
+    border-color: var(--phy-live);
+  }
+
+  .phy-legend-line--dashed {
+    border-color: var(--phy-loan);
+    border-top-style: dashed;
+  }
+
+  .phy-legend-line--dormant {
+    border-color: var(--phy-faded);
+    border-top-style: dashed;
+    opacity: 0.7;
+  }
+
+  .etymology-phylogeny__stack {
+    display: none;
+  }
+
+  .phy-stack-row {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-raised) 78%, var(--background));
+    padding: 0.8rem 0.9rem;
+  }
+
+  .phy-stack-row span {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .phy-stack-row strong {
+    font-family: var(--font-tamil);
+    font-size: 1.45rem;
+    line-height: 1.25;
+  }
+
+  .phy-stack-row small {
+    color: var(--muted);
+    font-family: var(--font-prose);
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  .phy-stack-row--live {
+    border-color: var(--phy-live);
+  }
+
+  .phy-stack-row--loan {
+    border-color: var(--phy-loan);
+  }
+
+  .phy-stack-row--faded {
+    border-color: var(--phy-faded);
+    border-style: dashed;
+  }
+
+  .phy-stack-grid,
+  .phy-stack-lane {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .phy-stack-lane {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  @media (max-width: 760px) {
+    .etymology-phylogeny__canvas {
+      display: none;
+    }
+
+    .etymology-phylogeny__stack {
+      display: grid;
+      gap: 0.65rem;
+    }
+  }
+</style>
