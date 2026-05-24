@@ -4,6 +4,13 @@ A literary Astro theme for glossaries, dictionaries, field guides, annotated arc
 
 Marginalia is designed for projects where each entry is both a beautiful page and a structured record: a hero display form, a short essay, marginal notes, lineage/timeline diagrams, related entries, sources, RSS, Pagefind search, and social metadata.
 
+**Live demo:** [astro-marginalia-theme.vercel.app](https://astro-marginalia-theme.vercel.app)  
+**Repository:** [github.com/electricsheepco/astro-marginalia](https://github.com/electricsheepco/astro-marginalia)
+
+## See It In Action
+
+- [Tamizh Lexicon](https://tamizhlexicon.in) — the original editorial dictionary whose layout system became this theme.
+
 ## Features
 
 - Astro 4 static site
@@ -69,4 +76,4 @@ Update `src/layouts/Base.astro` with your site origin, title, footer links, and 
 
 ## Submission Notes
 
-This repo is structured as a standalone Astro theme. Before submitting to astro.build/themes, add screenshots, a deployed demo URL, repository URL, license, and final author metadata.
+This repo is structured as a standalone Astro theme. Before submitting to astro.build/themes, add final screenshots and any marketplace-specific metadata requested by the Astro theme directory.

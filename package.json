@@ -10,7 +10,15 @@
     "astro": "astro"
   },
   "keywords": ["astro", "astro-theme", "theme", "dictionary", "glossary", "archive", "marginalia", "pagefind"],
-  "author": "Your Name",
+  "author": "RP / Electric Sheep Supply Co.",
+  "homepage": "https://astro-marginalia-theme.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/electricsheepco/astro-marginalia.git"
+  },
+  "bugs": {
+    "url": "https://github.com/electricsheepco/astro-marginalia/issues"
+  },
   "license": "MIT",
   "dependencies": {
     "@astrojs/tailwind": "^5.1.0",
