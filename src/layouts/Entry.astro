@@ -1,8 +1,6 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from './Base.astro';
-import EtymologyMap from '../components/EtymologyMap.astro';
-import EtymologyPhylogeny from '../components/EtymologyPhylogeny.astro';
 import EntrySources from '../components/EntrySources.astro';
 import LayerTimeline from '../components/LayerTimeline.astro';
 
@@ -11,7 +9,7 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const { concept, concept_tamil, thematic_cluster, status, layers, related, editorial_note, phylogeny, image } = entry.data;
+const { concept, concept_tamil, thematic_cluster, status, layers, related, editorial_note, image } = entry.data;
 const canonicalHeroFiles = import.meta.glob('/public/heroes/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 const canonicalHeroSrc = `/heroes/${entry.slug}.png`;
 const canonicalHeroImage = Object.hasOwn(canonicalHeroFiles, `/public${canonicalHeroSrc}`) ? canonicalHeroSrc : undefined;
@@ -23,8 +21,6 @@ const heroImage = image || (canonicalHeroImage
       credit_url: undefined,
     }
   : undefined);
-const medievalPrimary = layers.sanskrit_influenced?.word || layers.modern.literary || layers.modern.colloquial;
-const medievalArrival = layers.sanskrit_influenced?.sanskrit_root?.split(/[;(]/)[0].trim() || layers.other_language?.source_word;
 const allEntries = await getCollection('entries');
 const entrySlugs = new Set<string>(allEntries.map((item) => item.slug));
 const shareTransliteration = layers.proto_tamil?.transliteration || layers.modern.colloquial;
@@ -63,7 +59,6 @@ const layerNavItems = [
 const entryTocItems = [
   editorial_note ? { href: '#entry-marginalia', label: 'Marginalia' } : undefined,
   { href: '#entry-prose', label: 'Essay' },
-  { href: '#entry-phylogeny', label: 'Phylogeny' },
   { href: '#entry-journey', label: 'Journey' },
   related && related.length > 0 ? { href: '#entry-related', label: 'Related' } : undefined,
   { href: '#entry-sources', label: 'Sources' },
@@ -94,7 +89,7 @@ const entryTocItems = [
           <nav class="entry-rail-map" aria-label="Entry layer navigation">
             <div class="entry-rail-map__header">
               <span>Lineage</span>
-              <a href="#entry-phylogeny">Full map</a>
+              <a href="#entry-journey">Journey</a>
             </div>
             <ol>
               {layerNavItems.map((item) => (
@@ -226,31 +221,8 @@ const entryTocItems = [
         </div>
       </section>
 
-      <section class="entry-evidence" id="entry-phylogeny">
-        <div class="entry-evidence__map">
-          {phylogeny && layers.proto_tamil && layers.classical ? (
-            <EtymologyPhylogeny
-              proto={{
-                word: layers.proto_tamil.word,
-                transliteration: layers.proto_tamil.transliteration,
-              }}
-              classical={{
-                word: layers.classical.word,
-                transliteration: layers.classical.transliteration,
-              }}
-              medieval={{
-                primary: medievalPrimary,
-                arrival: medievalArrival,
-              }}
-              modern={phylogeny.modern}
-              contactLane={phylogeny.sanskrit_lane}
-            />
-          ) : (
-            <EtymologyMap layers={layers} />
-          )}
-        </div>
-
-        <div class="journey-heading" id="entry-journey">
+      <section class="entry-evidence" id="entry-journey">
+        <div class="journey-heading">
           <div class="mono">The journey</div>
           <div class="journey-rule"></div>
         </div>

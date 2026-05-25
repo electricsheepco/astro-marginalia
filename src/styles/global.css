@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
   --background:      #f9f5ef;
   --surface:         #f2ece2;
@@ -27,6 +25,81 @@
   --font-mono:   'JetBrains Mono', monospace;
 }
 
+:root[data-theme='dark'] {
+  --background:      #14120f;
+  --surface:         #201b16;
+  --surface-raised:  #282219;
+  --dark:            #f6efe3;
+  --muted:           #c8bba8;
+  --border:          #4f4336;
+  --accent:          #f09b64;
+  --accent-light:    #ffb17e;
+
+  --layer-proto:     #f6efe3;
+  --layer-classical: #eee0c9;
+  --layer-sanskrit: #dfc2a8;
+  --layer-other:    #cbd8ad;
+  --layer-modern:   #c8bba8;
+
+  --layer-proto-bg:     #241f19;
+  --layer-classical-bg: #2b241b;
+  --layer-sanskrit-bg:  #33281e;
+  --layer-other-bg:     #252b1f;
+  --layer-modern-bg:    #211d18;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='auto'] {
+    --background:      #14120f;
+    --surface:         #201b16;
+    --surface-raised:  #282219;
+    --dark:            #f6efe3;
+    --muted:           #c8bba8;
+    --border:          #4f4336;
+    --accent:          #f09b64;
+    --accent-light:    #ffb17e;
+
+    --layer-proto:     #f6efe3;
+    --layer-classical: #eee0c9;
+    --layer-sanskrit: #dfc2a8;
+    --layer-other:    #cbd8ad;
+    --layer-modern:   #c8bba8;
+
+    --layer-proto-bg:     #241f19;
+    --layer-classical-bg: #2b241b;
+    --layer-sanskrit-bg:  #33281e;
+    --layer-other-bg:     #252b1f;
+    --layer-modern-bg:    #211d18;
+  }
+}
+
+:root[data-theme='accessible'] {
+  --background:      #ffffff;
+  --surface:         #ffffff;
+  --surface-raised:  #ffffff;
+  --dark:            #000000;
+  --muted:           #202020;
+  --border:          #000000;
+  --accent:          #0000ee;
+  --accent-light:    #0000ee;
+
+  --layer-proto:     #000000;
+  --layer-classical: #000000;
+  --layer-sanskrit:  #000000;
+  --layer-other:     #000000;
+  --layer-modern:    #000000;
+
+  --layer-proto-bg:     #ffffff;
+  --layer-classical-bg: #ffffff;
+  --layer-sanskrit-bg:  #ffffff;
+  --layer-other-bg:     #ffffff;
+  --layer-modern-bg:    #ffffff;
+
+  --font-tamil: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-prose: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
@@ -48,6 +121,26 @@ body {
   color: var(--dark);
   font-family: var(--font-prose);
   line-height: 1.6;
+}
+
+:root[data-theme='accessible'] body {
+  background: var(--background);
+  font-size: 20px;
+  line-height: 1.75;
+}
+
+:root[data-theme='accessible'] *,
+:root[data-theme='accessible'] *::before,
+:root[data-theme='accessible'] *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  letter-spacing: 0 !important;
+}
+
+:root[data-theme='accessible'] a,
+:root[data-theme='accessible'] button {
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.18em;
 }
 
 a { color: inherit; }
@@ -170,6 +263,89 @@ a { color: inherit; }
   text-transform: uppercase;
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.theme-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 54%, var(--border));
+  background: color-mix(in srgb, var(--surface) 64%, transparent);
+  padding: 0.15rem;
+}
+
+.theme-switcher button {
+  min-height: 1.45rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  padding: 0.28rem 0.38rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.theme-switcher button:hover,
+.theme-switcher button:focus-visible,
+.theme-switcher button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--background);
+  outline: none;
+}
+
+.site-share-menu {
+  position: relative;
+}
+
+.site-share-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  min-width: 9.5rem;
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-raised) 96%, var(--background));
+  padding: 0.35rem;
+  box-shadow: 0 0.8rem 1.8rem color-mix(in srgb, var(--dark) 12%, transparent);
+}
+
+.site-share-panel[hidden] {
+  display: none;
+}
+
+.site-share-panel a,
+.site-share-panel button {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--dark);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.45rem;
+  text-align: left;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.site-share-panel a:hover,
+.site-share-panel a:focus-visible,
+.site-share-panel button:hover,
+.site-share-panel button:focus-visible {
+  background: var(--accent);
+  color: var(--background);
+  outline: none;
 }
 
 .kofi-button:hover,
@@ -397,6 +573,13 @@ a { color: inherit; }
   font-style: italic;
   line-height: 1.25;
   color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.3rem;
 }
 
 .home-visual-stack {

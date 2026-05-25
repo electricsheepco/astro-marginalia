@@ -15,6 +15,7 @@ const {
   ogImage = '/og-default.svg',
 } = Astro.props;
 const siteOrigin = 'https://example.com';
+const repositoryUrl = 'https://github.com/electricsheepco/astro-marginalia';
 const canonicalUrl = new URL(Astro.url.pathname, siteOrigin).toString();
 const imageUrl = new URL(ogImage, siteOrigin).toString();
 const plainDescription = description
@@ -44,9 +45,17 @@ const plainDescription = description
   <meta name="twitter:description" content={plainDescription} />
   <meta name="twitter:image" content={imageUrl} />
   <link rel="alternate" type="application/rss+xml" title="Astro Marginalia RSS" href="/feed.xml" />
+  <script is:inline>
+    (() => {
+      const allowedThemes = new Set(['auto', 'light', 'dark', 'accessible']);
+      const storedTheme = window.localStorage.getItem('marginalia-theme') || 'auto';
+      const theme = allowedThemes.has(storedTheme) ? storedTheme : 'auto';
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link id="site-fonts" href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
 </head>
 <body>
@@ -60,16 +69,32 @@ const plainDescription = description
         <a href="/about" class="cluster-tag">About</a>
         <a href="/credits" class="cluster-tag">Credits</a>
         <a href="/contribute" class="cluster-tag">Contribute</a>
-        <button class="site-share-button" type="button" data-site-share>
-          <svg class="share-icon" aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M6 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-            <path d="M18 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-            <path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-            <path d="M8.7 10.7l6.6 -3.4" />
-            <path d="M8.7 13.3l6.6 3.4" />
-          </svg>
-          <span data-site-share-label>Share</span>
-        </button>
+        <a href={repositoryUrl} class="cluster-tag" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <div class="theme-switcher" role="group" aria-label="Display mode">
+          <button type="button" data-theme-choice="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-choice="accessible" aria-pressed="false">Accessible</button>
+        </div>
+        <div class="site-share-menu">
+          <button class="site-share-button" type="button" data-site-share aria-expanded="false" aria-controls="site-share-panel">
+            <svg class="share-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M6 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+              <path d="M18 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+              <path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+              <path d="M8.7 10.7l6.6 -3.4" />
+              <path d="M8.7 13.3l6.6 3.4" />
+            </svg>
+            <span data-site-share-label>Share</span>
+          </button>
+          <div class="site-share-panel" id="site-share-panel" data-site-share-panel hidden>
+            <a href="#" data-share-platform="whatsapp" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <a href="#" data-share-platform="x" target="_blank" rel="noopener noreferrer">X</a>
+            <a href="#" data-share-platform="facebook" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <a href="#" data-share-platform="linkedin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <button type="button" data-site-copy-link>Copy link</button>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -85,6 +110,10 @@ const plainDescription = description
         <span>·</span>
         <a href="/feed.xml">RSS</a>
         <span>·</span>
+        <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span>·</span>
+        <a href="https://tamizhlexicon.in" target="_blank" rel="noopener noreferrer">See it in action</a>
+        <span>·</span>
         <a href="https://astro.build/">Astro</a>
       </span>
       <span class="site-subtitle">Built with Astro Marginalia</span>
@@ -95,30 +124,102 @@ const plainDescription = description
   <script>
     const siteShareButton = document.querySelector<HTMLButtonElement>('[data-site-share]');
     const siteShareLabel = document.querySelector<HTMLElement>('[data-site-share-label]');
+    const siteSharePanel = document.querySelector<HTMLElement>('[data-site-share-panel]');
+    const siteCopyLink = document.querySelector<HTMLButtonElement>('[data-site-copy-link]');
+    const siteShareLinks = document.querySelectorAll<HTMLAnchorElement>('[data-share-platform]');
+    const allowedThemes = new Set(['auto', 'light', 'dark', 'accessible']);
+    const themeButtons = document.querySelectorAll<HTMLButtonElement>('[data-theme-choice]');
+    const siteFonts = document.querySelector<HTMLLinkElement>('#site-fonts');
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    siteShareButton?.addEventListener('click', async () => {
+    const applyDisplayTheme = (theme: string) => {
+      const nextTheme = allowedThemes.has(theme) ? theme : 'auto';
+      document.documentElement.dataset.theme = nextTheme;
+      window.localStorage.setItem('marginalia-theme', nextTheme);
+      if (siteFonts) siteFonts.disabled = nextTheme === 'accessible';
+      themeButtons.forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.themeChoice === nextTheme));
+      });
+    };
+
+    applyDisplayTheme(document.documentElement.dataset.theme || 'auto');
+
+    themeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        applyDisplayTheme(button.dataset.themeChoice || 'auto');
+      });
+    });
+
+    darkQuery.addEventListener('change', () => {
+      if ((document.documentElement.dataset.theme || 'auto') === 'auto') {
+        document.documentElement.dataset.theme = 'auto';
+      }
+    });
+
+    const getSharePayload = () => {
       const title = document.title;
       const url = window.location.href;
+      const text = `${title} ${url}`;
+      const encodedTitle = encodeURIComponent(title);
+      const encodedUrl = encodeURIComponent(url);
+      const encodedText = encodeURIComponent(text);
 
-      if (typeof navigator.share === 'function') {
-        try {
-          await navigator.share({ title, url });
-          return;
-        } catch {
-          return;
-        }
-      }
+      return { url, encodedTitle, encodedUrl, encodedText };
+    };
 
+    const syncSiteShareLinks = () => {
+      const { encodedTitle, encodedUrl, encodedText } = getSharePayload();
+      const urls: Record<string, string> = {
+        whatsapp: `https://wa.me/?text=${encodedText}`,
+        x: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      };
+
+      siteShareLinks.forEach((link) => {
+        const platform = link.dataset.sharePlatform || '';
+        if (urls[platform]) link.href = urls[platform];
+      });
+    };
+
+    const setSiteShareOpen = (isOpen: boolean) => {
+      if (!siteSharePanel || !siteShareButton) return;
+      siteSharePanel.hidden = !isOpen;
+      siteShareButton.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) syncSiteShareLinks();
+    };
+
+    siteShareButton?.addEventListener('click', () => {
+      setSiteShareOpen(siteSharePanel?.hidden ?? true);
+    });
+
+    siteCopyLink?.addEventListener('click', async () => {
+      const { url } = getSharePayload();
       try {
         await navigator.clipboard.writeText(url);
-        if (siteShareLabel) {
-          siteShareLabel.textContent = 'Copied';
-          window.setTimeout(() => {
-            siteShareLabel.textContent = 'Share';
-          }, 1600);
-        }
+        siteCopyLink.textContent = 'Copied';
+        if (siteShareLabel) siteShareLabel.textContent = 'Copied';
+        window.setTimeout(() => {
+          siteCopyLink.textContent = 'Copy link';
+          if (siteShareLabel) siteShareLabel.textContent = 'Share';
+        }, 1600);
       } catch {
-        if (siteShareLabel) siteShareLabel.textContent = 'Copy failed';
+        siteCopyLink.textContent = 'Copy failed';
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (siteSharePanel?.hidden === false && !siteSharePanel.contains(target) && !siteShareButton?.contains(target)) {
+        setSiteShareOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && siteSharePanel?.hidden === false) {
+        setSiteShareOpen(false);
+        siteShareButton?.focus();
       }
     });
   </script>

@@ -2,7 +2,7 @@
 
 A literary Astro theme for glossaries, dictionaries, field guides, annotated archives, cultural notebooks, and research indexes.
 
-Marginalia is designed for projects where each entry is both a beautiful page and a structured record: a hero display form, a short essay, marginal notes, lineage/timeline diagrams, related entries, sources, RSS, Pagefind search, and social metadata.
+Marginalia is designed for projects where each entry is both a beautiful page and a structured record: a hero display form, a short essay, marginal notes, lineage/timeline summaries, related entries, sources, RSS, Pagefind search, and social metadata.
 
 **Live demo:** [astro-marginalia-theme.vercel.app](https://astro-marginalia-theme.vercel.app)  
 **Repository:** [github.com/electricsheepco/astro-marginalia](https://github.com/electricsheepco/astro-marginalia)
@@ -16,7 +16,7 @@ Marginalia is designed for projects where each entry is both a beautiful page an
 - Astro 4 static site
 - TypeScript + Zod typed content collections
 - Pagefind full-text search
-- Entry pages with hero display, marginalia, sticky TOC, share links, timeline, phylogeny, related links, and sources
+- Entry pages with hero display, marginalia, sticky TOC, share links, timeline, related links, and sources
 - Homepage with search and paginated entry grid
 - RSS feed
 - Open Graph / Twitter metadata
@@ -65,7 +65,6 @@ Write the essay here.
 - `layers.origin`, `layers.classical`, `layers.contact`, `layers.other`, `layers.modern`: structured timeline data
 - `marginalia`: short editorial note displayed beside the hero
 - `sources`: optional structured bibliography
-- `phylogeny`: optional left-to-right lineage chart
 - `image`: optional hero image block
 
 ## Customize

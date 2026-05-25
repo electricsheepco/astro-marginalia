@@ -30,6 +30,7 @@ const initialHero = heroEntries[0] || {
   tamil: 'aster',
   gloss: 'star',
 };
+const repositoryUrl = 'https://github.com/electricsheepco/astro-marginalia';
 ---
 
 <Base title="Astro Marginalia — A literary archive theme">
@@ -46,6 +47,11 @@ const initialHero = heroEntries[0] || {
         <p class="hero-deck">
           A literary Astro theme for glossaries, field notes, archives, and annotated essays.
         </p>
+        <div class="hero-actions" aria-label="Theme links">
+          <a class="cluster-tag" href={repositoryUrl} target="_blank" rel="noopener noreferrer">Use / Install</a>
+          <a class="cluster-tag" href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="cluster-tag" href="https://tamizhlexicon.in" target="_blank" rel="noopener noreferrer">See it in action</a>
+        </div>
       </div>
       <div class="home-visual-stack">
         <a class="hero-glyph" href={initialHero.href} aria-label={`Open ${initialHero.gloss}`}>
